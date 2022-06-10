@@ -1,0 +1,45 @@
+/* CSS */
+.swatch_1{
+    background: #09090c;
+}
+.swatch_2{
+    background: #d0e0fd;
+}
+.swatch_3{
+    background: #b7cbef;
+}
+.swatch_4{
+    background: #4d4344;
+}
+.swatch_5{
+    background: #9ca7bd;
+}
+.swatch_6{
+    background: #a65339;
+}
+.swatch_7{
+    background: #5d91c2;
+}
+.swatch_8{
+    background: #2568cc;
+}
+
+/* SASS */
+$swatch_1: #09090c;
+$swatch_2: #d0e0fd;
+$swatch_3: #b7cbef;
+$swatch_4: #4d4344;
+$swatch_5: #9ca7bd;
+$swatch_6: #a65339;
+$swatch_7: #5d91c2;
+$swatch_8: #2568cc;
+
+/* LESS */
+@swatch_1: #09090c;
+@swatch_2: #d0e0fd;
+@swatch_3: #b7cbef;
+@swatch_4: #4d4344;
+@swatch_5: #9ca7bd;
+@swatch_6: #a65339;
+@swatch_7: #5d91c2;
+@swatch_8: #2568cc;
