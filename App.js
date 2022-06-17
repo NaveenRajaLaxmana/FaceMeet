@@ -1,47 +1,27 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React from 'react'
+import tw , { useDeviceContext } from 'twrnc';
+import CallScreen from './screens/CallScreen';
+import HomePage from './screens/HomePage';
+import {NavigationContainer} from '@react-navigation/native'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import Trial from './Trial';
 
-import React,{useEffect} from 'react';
-
-import {
-  SafeAreaView,
- 
-  Text,
-  View
-} from 'react-native';
-
-
-
-import PushNotification  from 'react-native-push-notification';
-import tw from 'twrnc';
-
-
-
+const Stack = createNativeStackNavigator()
 
 const App = () => {
-  const notifyChannel = () =>{
-    PushNotification.createChannel({
-      channelId:"text",
-      channelName:"text-channel"
-    })
-  }
-  useEffect(() => {
-    notifyChannel()
-  })
+    useDeviceContext(tw)
   return (
-    <SafeAreaView>
-      <View style={tw`h-screen`}>
-        <Text></Text>
-      </View>
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName='home' screenOptions={{
+        headerShown:false
+      }}>
+        <Stack.Screen name='home' component={HomePage}/>
+        <Stack.Screen name='call' component={CallScreen}/>
+      </Stack.Navigator>
+    
+    </NavigationContainer>
+    // <Trial />
   )
-};
+}
 
-
-
-export default App;
+export default App
