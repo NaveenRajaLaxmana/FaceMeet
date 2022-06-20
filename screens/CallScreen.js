@@ -5,7 +5,7 @@ import Iconicons from 'react-native-vector-icons/Ionicons'
 import MAI from 'react-native-vector-icons/MaterialIcons'
 import FA from 'react-native-vector-icons/FontAwesome'
 import {useNavigation} from '@react-navigation/native'
-import RtcEngine,{RtcLocalView,RtcRemoteView,VideoRenderMode} from 'react-native-agora';
+import RtcEngine,{RtcLocalView,RtcRemoteView,VideoRenderMode,ClientRole, ChannelProfile} from 'react-native-agora';
 
 const img10 = require('../assets/images/img10.jpg')
 
@@ -32,6 +32,8 @@ const CallScreen = ({route}) => {
     const [audio,setAudio] = useState(true)
     const [video,setVideo] = useState(true)
     const [duration,setduration] = useState('')
+    const [host,sethost] = useState(true)
+    const [remote,setremote] = useState(false)
 
     const createRtcEngine = async () => {
     //     if (Platform.OS === 'android') {
@@ -42,6 +44,9 @@ const CallScreen = ({route}) => {
          rtcEngine = await RtcEngine.create(APP_ID)
       await  rtcEngine.enableVideo()
       await rtcEngine.enableAudio()
+      // await rtcEngine.setEnableSpeakerphone(true)
+      await rtcEngine.setDefaultAudioRoutetoSpeakerphone(true)
+      
       startCall()
       
     //    await startCall()
@@ -49,6 +54,7 @@ const CallScreen = ({route}) => {
           setisJoined(true)
           console.log('remote User Joined',uid,elapsed)
           peers.push(uid)
+          setremote(true)
         })
     
         rtcEngine.addListener('UserOffline',(uid,reason) => {
@@ -70,6 +76,10 @@ const CallScreen = ({route}) => {
             console.log('Snapshot failed ',channel,uid,filepath,width,height,errCode)
           }
         })
+
+        rtcEngine.addListener('AudioPublishStateChanged',(channel,old,newstate,elapse) =>{
+          console.log("hello audiopublish state ",channel,old,newstate,elapse)
+        })
       }
     
       const startCall = async () => {
@@ -81,11 +91,10 @@ const CallScreen = ({route}) => {
         await rtcEngine.leaveChannel()
         console.log('call ended')
         setisJoined(false)
+       delete peers[0]
       }
 
-     
-
-const localview = () =>{
+const localuserview = () => {
   return (
     <RtcLocalView.SurfaceView
                       style={{height:dimensions.height-10,width:dimensions.width}}
@@ -95,9 +104,30 @@ const localview = () =>{
   )
 }
 
+const localview = () =>{
+  
+   if(peers.length==0)return localuserview()
+
+   return remoteview()
+    
+  
+}
+
+const remoteview = () => {
+  return (
+    <RtcRemoteView.TextureView
+                      style={{height:dimensions.height-10,width:dimensions.width}}
+                      uid={peers[0]}
+                      channelId={CHANNELNAME}
+                      renderMode={VideoRenderMode.Hidden}
+                      zOrderMediaOverlay={true}/>
+  )
+}
+
 const audiotoggle = async() =>{
   setAudio(!audio)
   await rtcEngine.enableLocalAudio(audio)
+  
 }
 
 const videoToggle = async () => {
@@ -105,9 +135,27 @@ const videoToggle = async () => {
   await rtcEngine.enableLocalVideo(video)
 }
 
+const smalllocalview = () => {
+  return (
+    <RtcLocalView.TextureView
+                      style={{height:dimensions.height * 0.1,width:dimensions.width * 0.2}}
+                      channelId={CHANNELNAME}
+                      renderMode={VideoRenderMode.Hidden}
+                      />
+  )
+}
+
     useEffect(() => {
         createRtcEngine()
     },[])
+
+    useEffect(() =>{
+      localview()
+      smalllocalview()
+    },[peers])
+    useEffect(() => {
+      smalllocalview()
+    },[video])
     const callEnd = async() => {
         // navigate.navigate('home')
       await endCall()
@@ -117,6 +165,7 @@ const videoToggle = async () => {
         <ScrollView style={style.callscreenscrollview}>
         <ImageBackground source={img3} style={[style.callscreenFullview,{height:dimensions.height}]}>
         {isjoined && !video && localview()}
+        {/* {isjoined && !video && remote && remoteview()} */}
                 
                 <TouchableOpacity style={style.callscreenvolume}>
                     <Iconicons name='volume-medium' size={20} color={'#67667b'}/>
@@ -148,7 +197,7 @@ const videoToggle = async () => {
                          </TouchableOpacity>
                      </View>
                  </View>
-
+                
 
                {/* remote viewers */}
                 <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{justifyContent:'space-around'}} style={style.remoteviewersection}>
@@ -158,13 +207,13 @@ const videoToggle = async () => {
                       channelId={CHANNELNAME}
                       renderMode={VideoRenderMode.Hidden}
                       zOrderMediaOverlay={true}/> */}
-                      {peers.length > 0 && <RtcRemoteView.SurfaceView
+                      {/* {peers.length > 0 && <RtcRemoteView.SurfaceView
                       style={{height:dimensions.height * 0.1,width:dimensions.width * 0.2}}
                       uid={peers[0]}
                       channelId={CHANNELNAME}
                       renderMode={VideoRenderMode.Hidden}
-                      zOrderMediaOverlay={true}/>}
-                       
+                      zOrderMediaOverlay={true}/>} */}
+                       {smalllocalview()}
          
                 </ScrollView>
              </ImageBackground>

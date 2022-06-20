@@ -5,6 +5,7 @@ import HomePage from './screens/HomePage';
 import {NavigationContainer} from '@react-navigation/native'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import Trial from './Trial';
+import Voicecall from './screens/voicecall';
 
 const Stack = createNativeStackNavigator()
 
@@ -20,6 +21,7 @@ const App = () => {
       </Stack.Navigator>
     
     </NavigationContainer>
+    // <Voicecall />
     // <Trial />
   )
 }
