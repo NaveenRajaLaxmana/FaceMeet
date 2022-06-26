@@ -26,7 +26,7 @@ const dimensions = {
 const peers = []
 
 const CallScreen = ({route}) => {
-    const navigate = useNavigation()
+    const navigation = useNavigation()
     const CHANNELNAME = route.params?.channelname || 'channel'
     const [isjoined,setisJoined] = useState(false)
     const [audio,setAudio] = useState(true)
@@ -34,6 +34,7 @@ const CallScreen = ({route}) => {
     const [duration,setduration] = useState('')
     const [host,sethost] = useState(true)
     const [remote,setremote] = useState(false)
+    const [share,setshare] = useState(false)
 
     const createRtcEngine = async () => {
     //     if (Platform.OS === 'android') {
@@ -106,7 +107,7 @@ const localuserview = () => {
 
 const localview = () =>{
   
-   if(peers.length==0)return localuserview()
+  
 
    return remoteview()
     
@@ -138,12 +139,44 @@ const videoToggle = async () => {
 const smalllocalview = () => {
   return (
     <RtcLocalView.TextureView
-                      style={{height:dimensions.height * 0.1,width:dimensions.width * 0.2}}
+                      style={style.remoteviewbox}
                       channelId={CHANNELNAME}
                       renderMode={VideoRenderMode.Hidden}
                       />
   )
 }
+
+const capturePhoto = async() => {
+  const id = Math.floor(Math.random() * 10000)
+  console.log('hello')
+  try {
+    await rtcEngine.takeSnapshot(CHANNELNAME,0,`/storage/emulated/0/Android/data/com.vcall/files/${id}.jpg`)
+  } catch (error) {
+    console.log(error)
+  }
+  
+   
+ }
+
+ const startscreenShare = async() => {
+  await rtcEngine.startScreenCapture({
+    captureVideo:true
+  })
+}
+
+const stopscreenShare = async() => {
+  await rtcEngine.stopScreenCapture()
+}
+
+ const screenToggle = async() => {
+  console.log('clicked')
+  setshare(share => !share)
+  if(share==false){
+    startscreenShare()
+  }else {
+    stopscreenShare()
+  }
+ }
 
     useEffect(() => {
         createRtcEngine()
@@ -151,7 +184,6 @@ const smalllocalview = () => {
 
     useEffect(() =>{
       localview()
-      smalllocalview()
     },[peers])
     useEffect(() => {
       smalllocalview()
@@ -159,12 +191,13 @@ const smalllocalview = () => {
     const callEnd = async() => {
         // navigate.navigate('home')
       await endCall()
+      navigation.navigate('home')
     }
   return (
     <SafeAreaView>
         <ScrollView style={style.callscreenscrollview}>
         <ImageBackground source={img3} style={[style.callscreenFullview,{height:dimensions.height}]}>
-        {isjoined && !video && localview()}
+        {peers.length>0 && remoteview()}
         {/* {isjoined && !video && remote && remoteview()} */}
                 
                 <TouchableOpacity style={style.callscreenvolume}>
@@ -184,7 +217,7 @@ const smalllocalview = () => {
                      </TouchableOpacity>
 
                      <View style={style.callscreenflexbutton}>
-                         <TouchableOpacity style={style.callscreenbuttonbg}>
+                         <TouchableOpacity style={style.callscreenbuttonbg} onPress={capturePhoto}>
                              <FA name='camera' size={20} color={'#ffffff'}/>
                          </TouchableOpacity>
                          <TouchableOpacity style={style.callscreenbuttonbg} onPress={videoToggle}>
@@ -194,6 +227,10 @@ const smalllocalview = () => {
                          <TouchableOpacity style={style.callscreenbuttonbg} onPress={audiotoggle}>
                              {audio && <FA name='microphone' size={20} color={'#ffffff'}/>}
                              {!audio && <FA name='microphone-slash' size={20} color={'#ffffff'}/>}
+                         </TouchableOpacity>
+                         <TouchableOpacity style={style.callscreenbuttonbg} onPress={screenToggle}>
+                             {<Iconicons name='share-outline' size={20} color={share ==false ?'#ffffff' : '#000'}/>}
+                            
                          </TouchableOpacity>
                      </View>
                  </View>
@@ -214,6 +251,22 @@ const smalllocalview = () => {
                       renderMode={VideoRenderMode.Hidden}
                       zOrderMediaOverlay={true}/>} */}
                        {smalllocalview()}
+
+                       <ImageBackground source={img1} style={style.remoteviewbox}>
+          <Text style={[style.remoteviewboxname]}>Krishna</Text>
+      </ImageBackground>
+
+      <ImageBackground source={img2} style={style.remoteviewbox}>
+          <Text style={[style.remoteviewboxname]}>Krishna</Text>
+      </ImageBackground>
+
+      <ImageBackground source={img3} style={style.remoteviewbox}>
+          <Text style={[style.remoteviewboxname]}>Krishna</Text>
+     </ImageBackground>
+
+      <ImageBackground source={profilephoto} style={style.remoteviewbox}>
+          <Text style={[style.remoteviewboxname]}>Krishna</Text>
+     </ImageBackground>
          
                 </ScrollView>
              </ImageBackground>
