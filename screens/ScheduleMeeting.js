@@ -3,9 +3,10 @@ import { Alert, Modal, StyleSheet, Text, Pressable, View,TextInput,ToastAndroid 
 import {useNavigation} from '@react-navigation/native'
 import DatePicker from 'react-native-date-picker';
 import PushNotification from "react-native-push-notification";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
-const ScheduleMeeting = ({modalVisible,setModalVisible,setUpComing}) => {
+const ScheduleMeeting = ({modalVisible,setModalVisible,setUpComing,getAysncStoreNotification}) => {
     const navigation = useNavigation()
     const [channelname,setChannelName] = useState('')
     const [date, setDate] = useState(new Date())
@@ -24,12 +25,31 @@ const ScheduleMeeting = ({modalVisible,setModalVisible,setUpComing}) => {
     })
   }
 
-  const onSubmit = () => {
+  const setstoreAsyncnotification = async(channel,value) => {
+    try {
+      const jsonvalue = JSON.stringify(value);
+      await AsyncStorage.setItem(channel.toString(),jsonvalue)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const onSubmit = async() => {
     if(channelname == '')return
-    setUpComing(upcoming => [...upcoming,{meetingname:channelname,date:date.toLocaleDateString(),time:date.toLocaleTimeString()}])
+    // setUpComing(upcoming => [...upcoming,{meetingname:channelname,date:date.toLocaleDateString(),time:date.toLocaleTimeString()}])
     scheduleNotification(channelname,date)
-    setModalVisible(!modalVisible)
+    const val = {
+      meetingname:channelname,
+      date:date.toLocaleDateString(),
+      time:date.toLocaleTimeString()
+    }
+    
+    await setstoreAsyncnotification(channelname,val)
+    await getAysncStoreNotification()
     ToastAndroid.show("Meeting Scheduled",ToastAndroid.SHORT)
+    
+   
+    setModalVisible(!modalVisible)
     navigation.navigate('home')
     setChannelName('')
   }

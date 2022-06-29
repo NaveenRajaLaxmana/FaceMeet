@@ -8,7 +8,7 @@ const GetnameModal = ({namemodalVisible,setnameModalVisible,setUsername}) => {
     if(name == '')return
    try {
     await AsyncStorage.setItem('username',name)
-    const val =AsyncStorage.getItem('username')
+    const val =await AsyncStorage.getItem('username')
     setUsername(val)
     console.log('username added to data')
    } catch (error) {

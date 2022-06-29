@@ -68,8 +68,8 @@ const HomePage = () => {
         try {
            const val = await AsyncStorage.getItem('username')
            if(val!=null){
-            setnameModalVisible(false)
             setUsername(val)
+            setnameModalVisible(false)
            }else setnameModalVisible(true)
         } catch (error) {
             console.log(error)
@@ -108,13 +108,44 @@ const HomePage = () => {
         }
       }
 
+      const getAysncStoreNotification = async() => {
+        try {
+            const keys = await AsyncStorage.getAllKeys()
+            if(keys!==null){
+                console.log('keys are',keys)
+              let news = keys.filter(k => k!=="username")
+                if(news.length>0){
+                    try {
+                        console.log('keys values are ',...news)
+                        let val = await AsyncStorage.multiGet([...news])
+                        console.log('values are ',...val)
+                        let arr=[]
+                        for(let i of val){
+                            let second = JSON.parse(i[1])
+                            arr.push(second)
+                        }
+                        console.log('arr are',arr)
+                        setUpComing(arr)
+                    } catch (error) {
+                        console.log(error)
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error)
+        }
+      }
+
     useEffect(() =>{
 requestCameraAndAudioPermission()
 localnotifyChannel()
-check()
+// check()
 checkUserDetails()
 checkProfile()
+getAysncStoreNotification()
     },[])
+
+    
 
     const datetimepick = () => {
         console.log(date.toLocaleDateString())
@@ -135,14 +166,20 @@ checkProfile()
         )
     }
     const upcomingNotification = () => {
-       const startAndremoveNotification = (channelname) => {
+       const startAndremoveNotification = async (channelname) => {
+            try {
+                await AsyncStorage.removeItem(channelname.toString())
+            } catch (error) {
+                console.log(error)
+            }
             const newlist = upcoming.filter(up => up.meetingname != channelname)
             setUpComing(newlist);
+            setUpComing([])
             navigation.navigate('call',{channelname})
        }
         return  upcoming.map(notify => {
             return (
-                <View style={style.notifybox}>
+                <View style={style.notifybox} key={notify.meetingname}>
                 <Text style={style.fontRegular}>{notify.meetingname}</Text>
                 <Text style={style.fontLight}>{notify.date}  {notify.time}</Text>
 
@@ -181,7 +218,7 @@ checkProfile()
   return (
     <SafeAreaView>
         <Modals modalVisible={modalVisible} setModalVisible={setModalVisible}/>
-        <ScheduleMeeting modalVisible={schedulemodalVisible} setModalVisible={setscheduleModalVisible} setUpComing={setUpComing}/>
+        <ScheduleMeeting modalVisible={schedulemodalVisible} setModalVisible={setscheduleModalVisible} setUpComing={setUpComing} getAysncStoreNotification={getAysncStoreNotification}/>
         <GetnameModal namemodalVisible={namemodalVisible} setnameModalVisible={setnameModalVisible} setUsername={setUsername}/>
     {!modalVisible && !schedulemodalVisible &&  !namemodalVisible && <ScrollView style={[style.scrollview,tw.style(modalVisible && 'bg-[#3f485a]')]}>
         {/* banner section */}

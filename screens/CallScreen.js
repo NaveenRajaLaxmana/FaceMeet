@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react'
-import { Text,SafeAreaView,ScrollView,View,Image,TouchableOpacity,ImageBackground,FlatList,Dimensions } from 'react-native'
+import { Text,SafeAreaView,ScrollView,View,Image,TouchableOpacity,ImageBackground,FlatList,Dimensions,ToastAndroid } from 'react-native'
 import style from '../style'
 import Iconicons from 'react-native-vector-icons/Ionicons'
 import MAI from 'react-native-vector-icons/MaterialIcons'
@@ -23,7 +23,7 @@ const dimensions = {
   height:Dimensions.get('window').height
 }
 
-const peers = []
+
 
 const CallScreen = ({route}) => {
     const navigation = useNavigation()
@@ -35,6 +35,8 @@ const CallScreen = ({route}) => {
     const [host,sethost] = useState(true)
     const [remote,setremote] = useState(false)
     const [share,setshare] = useState(false)
+    const [bigview,setbigview] = useState(null)
+    const [peers,setPeers] = useState([])
 
     const createRtcEngine = async () => {
     //     if (Platform.OS === 'android') {
@@ -54,13 +56,18 @@ const CallScreen = ({route}) => {
         rtcEngine.addListener('UserJoined',(uid,elapsed) => {
           setisJoined(true)
           console.log('remote User Joined',uid,elapsed)
-          peers.push(uid)
+          setPeers(p => [...p,uid])
           setremote(true)
         })
     
         rtcEngine.addListener('UserOffline',(uid,reason) => {
           console.log('User Offline',uid,reason)
-          
+          let fil = peers.filter(r => r!==uid)
+          if(bigview===uid){
+            setbigview(peers[0])
+          }
+          setPeers(fil)
+          ToastAndroid.show(`${uid} becomes offline`,ToastAndroid.SHORT)
         })
         rtcEngine.addListener('JoinChannelSuccess',(channel,uid,elapsed) => {
           console.log('local User Joined',channel,uid,elapsed)
@@ -109,16 +116,17 @@ const localview = () =>{
   
   
 
-   return remoteview()
-    
+  //  return remoteview()
+    return localuserview()
   
 }
 
 const remoteview = () => {
+  if(bigview == null)return;
   return (
     <RtcRemoteView.TextureView
                       style={{height:dimensions.height-10,width:dimensions.width}}
-                      uid={peers[0]}
+                      uid={bigview}
                       channelId={CHANNELNAME}
                       renderMode={VideoRenderMode.Hidden}
                       zOrderMediaOverlay={true}/>
@@ -138,12 +146,28 @@ const videoToggle = async () => {
 
 const smalllocalview = () => {
   return (
+    <TouchableOpacity onPress={() => console.log('clicked yours')}>
     <RtcLocalView.TextureView
                       style={style.remoteviewbox}
                       channelId={CHANNELNAME}
                       renderMode={VideoRenderMode.Hidden}
                       />
+    </TouchableOpacity>
   )
+}
+
+const smallremoteview = () => {
+ return peers.map(r => (
+  <TouchableOpacity onPress={() => {console.log('clicked photo'); setbigview(r)}}>
+    <RtcRemoteView.TextureView
+                      style={style.remoteviewbox}
+                      key={r}
+                      uid={r}
+                      channelId={CHANNELNAME}
+                      renderMode={VideoRenderMode.Hidden}
+                      zOrderMediaOverlay={true}/>
+  </TouchableOpacity>
+  ))
 }
 
 const capturePhoto = async() => {
@@ -183,8 +207,8 @@ const stopscreenShare = async() => {
     },[])
 
     useEffect(() =>{
-      localview()
-    },[peers])
+      remoteview()
+    },[peers,bigview])
     useEffect(() => {
       smalllocalview()
     },[video])
@@ -251,8 +275,9 @@ const stopscreenShare = async() => {
                       renderMode={VideoRenderMode.Hidden}
                       zOrderMediaOverlay={true}/>} */}
                        {smalllocalview()}
+                       {peers.length>0 && smallremoteview()}
 
-                       <ImageBackground source={img1} style={style.remoteviewbox}>
+                       {/* <ImageBackground source={img1} style={style.remoteviewbox}>
           <Text style={[style.remoteviewboxname]}>Krishna</Text>
       </ImageBackground>
 
@@ -266,7 +291,7 @@ const stopscreenShare = async() => {
 
       <ImageBackground source={profilephoto} style={style.remoteviewbox}>
           <Text style={[style.remoteviewboxname]}>Krishna</Text>
-     </ImageBackground>
+     </ImageBackground> */}
          
                 </ScrollView>
              </ImageBackground>
